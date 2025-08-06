@@ -1,7 +1,9 @@
 # ECG Receiver with AI Heart Diagnosis
 
 A comprehensive standalone application for real-time ECG data visualization and AI-powered heart problem diagnosis using Gemini 2.5 Flash model. This system combines real-time ECG monitoring from ADS1292R sensor connected to an ESP32 board with advanced AI analysis for heart condition detection.
-![Uploading 4c9a318bef7ddaf9603107596a4fd978.png…]()
+
+<img width="1385" height="936" alt="4c9a318bef7ddaf9603107596a4fd978" src="https://github.com/user-attachments/assets/d1360387-bec2-4f51-8e00-6c41ae5e2565" />
+
 
 ## 🔥 New Features v2.0
 
