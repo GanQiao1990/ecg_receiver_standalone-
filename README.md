@@ -66,7 +66,7 @@ ecg_receiver_standalone-/
 - python-dotenv for configuration management
 
 ### AI Diagnosis
-- Gemini 2.5 Flash API key (from https://api.gptnb.ai/)
+- Gemini 2.5 Flash API key (from https://deepresearch2agi.cn/)
 - Internet connection for AI analysis
 
 ## Installation
@@ -102,14 +102,14 @@ ecg_receiver_standalone-/
 ### API Setup
 
 1. **Get Gemini API Key**
-   - Sign up at https://api.gptnb.ai/
+   - Sign up at https://deepresearch2agi.cn/
    - Obtain your API key for Gemini 2.5 Flash model
 
 2. **Configure Environment**
    ```bash
    # Create .env file
    GEMINI_API_KEY=your_api_key_here
-   GEMINI_API_URL=https://api.gptnb.ai/
+   GEMINI_API_URL=https://deepresearch2agi.cn/
    ```
 
 3. **Test API Connection**
@@ -262,7 +262,7 @@ This will run sample ECG patterns through the AI diagnosis system and show resul
 - **"API Setup Failed"**:
   - Verify your API key is correct and active
   - Check internet connection
-  - Ensure API URL is correct: https://api.gptnb.ai/
+  - Ensure API URL is correct: https://deepresearch2agi.cn/
   - Try testing with: `python test_diagnosis.py`
 
 - **"Not enough ECG data for analysis"**:
@@ -308,7 +308,7 @@ This will run sample ECG patterns through the AI diagnosis system and show resul
 - **Environment Variables**: Create a `.env` file with your API configuration:
   ```bash
   GEMINI_API_KEY=your_api_key_here
-  GEMINI_API_URL=https://api.gptnb.ai/
+  GEMINI_API_URL=https://deepresearch2agi.cn/
   ```
 
 - **API Key Management**: 
