@@ -13,7 +13,8 @@ def check_dependencies():
     required_packages = [
         'customtkinter',
         'matplotlib', 
-        'Pillow'
+        'Pillow',
+        'psutil'
     ]
     
     missing_packages = []
