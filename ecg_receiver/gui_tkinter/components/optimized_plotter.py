@@ -21,8 +21,10 @@ class OptimizedECGPlotter:
         self.width = width
         self.height = height
         
-        # Create figure with optimal settings
-        self.fig = Figure(figsize=(width/100, height/100), dpi=100)
+        # Create figure with optimal settings (fix for type error)
+        width_inches = max(1, int(width // 100))
+        height_inches = max(1, int(height // 100))
+        self.fig = Figure(figsize=(width_inches, height_inches), dpi=100)
         self.fig.patch.set_facecolor('#0f172a')
         
         # Create subplot
