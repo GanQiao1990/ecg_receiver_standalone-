@@ -258,7 +258,11 @@ Optimized ECG Plotting with Matplotlib Blitting
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.backends.backend_tkagg import FigureCanvasTkinter
+try:
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigureCanvas
+except ImportError:
+    # Fallback for older matplotlib versions
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkinter as FigureCanvas
 from matplotlib.figure import Figure
 from typing import List, Optional
 import time
@@ -284,7 +288,7 @@ class OptimizedECGPlotter:
         self.line, = self.ax.plot([], [], '#10b981', linewidth=1.5)
         
         # Canvas setup
-        self.canvas = FigureCanvasTkinter(self.fig, parent_widget)
+        self.canvas = FigureCanvas(self.fig, parent_widget)
         self.canvas.get_tk_widget().pack(fill='both', expand=True)
         
         # Performance optimization

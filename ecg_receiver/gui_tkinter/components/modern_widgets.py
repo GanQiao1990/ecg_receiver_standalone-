@@ -7,7 +7,11 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkinter
+try:
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigureCanvas
+except ImportError:
+    # Fallback for older matplotlib versions
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkinter as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
 from typing import Callable, Optional, List, Dict, Any
@@ -114,7 +118,7 @@ class ECGPlotWidget(ctk.CTkFrame):
         self.ax.set_ylim(-200, 200)
         
         # Create canvas
-        self.canvas = FigureCanvasTkinter(self.figure, self)
+        self.canvas = FigureCanvas(self.figure, self)
         self.canvas.get_tk_widget().pack(fill="both", expand=True, padx=5, pady=5)
         
         # Tight layout

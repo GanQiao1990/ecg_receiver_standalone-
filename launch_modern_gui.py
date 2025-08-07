@@ -11,9 +11,9 @@ import subprocess
 def check_dependencies():
     """Check and install required dependencies for modern GUI"""
     required_packages = [
-        'customtkinter>=5.2.0',
-        'matplotlib>=3.7.0', 
-        'Pillow>=10.0.0'
+        'customtkinter',
+        'matplotlib', 
+        'Pillow'
     ]
     
     missing_packages = []

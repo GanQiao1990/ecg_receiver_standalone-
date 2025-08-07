@@ -1,21 +1,33 @@
+# Core dependencies for the ECG receiver application
 pyserial>=3.5
 numpy>=1.24.0
 PyQt5>=5.15.0
 pyqtgraph>=0.13.0
-requests>=2.28.0
 python-dotenv>=1.0.0
 
-# Modern Tkinter GUI dependencies
+# Dependencies for the Modern Tkinter GUI
 customtkinter>=5.2.0
 matplotlib>=3.7.0
-Pillow>=10.0.0
+Pillow>=10.1.0
 
-# Performance monitoring dependencies
+# Performance monitoring dependency
 psutil>=5.9.0
 
-# Optional: Tkinter Designer (for future design updates)
-tkdesigner>=1.0.7
+# Networking and utility dependencies
+requests==2.25.1
+urllib3==1.26.6
+certifi==2021.5.30
+chardet==4.0.0
+idna==2.10
 
 # Development and testing dependencies (optional)
-pytest>=7.0.0
-pytest-qt>=4.2.0
+# Uncomment the following lines if you need them for development
+# pytest>=7.0.0
+# pytest-qt>=4.2.0
+
+# Note: The 'tkdesigner' package and its specific dependencies
+# (e.g., Pillow<9.0.0, urllib3==1.26.4) are incompatible with
+# the modern versions of matplotlib and Pillow used here.
+# It is recommended to install and use tkdesigner in a separate,
+# isolated virtual environment to generate UI code, then copy the
+# generated code into this project.
