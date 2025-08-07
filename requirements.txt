@@ -10,5 +10,12 @@ customtkinter>=5.2.0
 matplotlib>=3.7.0
 Pillow>=10.0.0
 
+# Performance monitoring dependencies
+psutil>=5.9.0
+
 # Optional: Tkinter Designer (for future design updates)
 # tkinter-designer>=1.0.7
+
+# Development and testing dependencies (optional)
+pytest>=7.0.0
+pytest-qt>=4.2.0
