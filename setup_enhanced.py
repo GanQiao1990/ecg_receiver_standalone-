@@ -102,10 +102,9 @@ def install_dependencies():
         ("psutil>=5.9.0", "Performance monitoring")
     ]
     
-    # Legacy GUI dependencies (optional)
-    legacy_deps = [
-        ("PyQt5>=5.15.0", "Legacy GUI framework"),
-        ("pyqtgraph>=0.13.0", "Legacy plotting")
+    # Optional GUI design dependencies (for advanced users)
+    design_deps = [
+        ("tkdesigner>=1.0.7", "Figma to Tkinter conversion tool (optional)")
     ]
     
     print("📋 Core Dependencies:")
@@ -113,6 +112,20 @@ def install_dependencies():
     
     print("\\n🎨 Modern GUI Dependencies:")
     gui_success = all(install_package(pkg, desc) for pkg, desc in gui_deps)
+    
+    print("\\n🎨 GUI Design Tools (optional):")
+    design_success = True  # Don't require these
+    for pkg, desc in design_deps:
+        try:
+            install_package(pkg, desc)
+        except:
+            print(f"   ⚠️  {pkg} - optional dependency failed (continuing)")
+    
+    # Legacy GUI dependencies (still optional)
+    legacy_deps = [
+        ("PyQt5>=5.15.0", "Legacy GUI framework"),
+        ("pyqtgraph>=0.13.0", "Legacy plotting")
+    ]
     
     print("\\n📱 Legacy GUI Dependencies (optional):")
     legacy_success = True  # Don't require these

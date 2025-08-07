@@ -132,13 +132,17 @@ Footer (1400 x 40px)
 
 #### **3.1 安装Tkinter Designer**
 ```bash
-# 方法1: 从GitHub安装
+# 方法1: 从PyPI安装 (推荐)
+pip install tkdesigner
+
+# 方法2: 从GitHub源码安装 (最新开发版)
 git clone https://github.com/ParthJadhav/Tkinter-Designer.git
 cd Tkinter-Designer
 pip install -r requirements.txt
 
-# 方法2: 使用pip安装 (如果可用)
-pip install tkinter-designer
+# 方法3: 直接使用GUI工具 (无需安装)
+# 下载 Tkinter-Designer-GUI.exe (Windows)
+# 或从源码运行: python gui.py
 ```
 
 #### **3.2 获取Figma API Token**
@@ -162,13 +166,17 @@ pip install tkinter-designer
 
 #### **4.1 运行Tkinter Designer**
 ```bash
-# 进入Tkinter Designer目录
-cd Tkinter-Designer
+# 方法1: 如果通过pip安装了tkdesigner
+tkdesigner
 
-# 运行GUI工具
+# 方法2: 使用Python模块方式
+python -m tkdesigner
+
+# 方法3: 从GitHub源码运行
+cd Tkinter-Designer
 python gui.py
 
-# 或使用命令行
+# 方法4: 使用命令行工具
 python cli.py [FIGMA-FILE-URL] [FIGMA-TOKEN]
 ```
 

@@ -147,7 +147,7 @@ INPUT_STYLE = {
 # 新增tkinter相关依赖
 customtkinter>=5.2.0      # 现代化tkinter组件
 matplotlib>=3.7.0         # 图表绘制
-tkinter-designer>=1.0.7   # Figma到tkinter转换工具
+tkdesigner>=1.0.7   # Figma到tkinter转换工具
 Pillow>=10.0.0           # 图像处理
 ```
 

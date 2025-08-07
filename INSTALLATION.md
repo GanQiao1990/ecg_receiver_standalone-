@@ -86,6 +86,7 @@ pyqtgraph>=0.13.0      # Legacy plotting
 ```text
 pytest>=7.0.0          # Testing framework
 pytest-qt>=4.2.0       # GUI testing utilities
+tkdesigner>=1.0.7      # Figma to Tkinter conversion tool
 ```
 
 ---
