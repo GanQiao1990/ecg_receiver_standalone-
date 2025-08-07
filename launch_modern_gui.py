@@ -29,15 +29,44 @@ def check_dependencies():
         print("🔧 Installing missing dependencies for modern GUI...")
         print(f"Missing: {', '.join(missing_packages)}")
         
-        try:
+        # Multiple PyPI mirrors for better connectivity
+        mirrors = [
+            "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple",
+            "https://pypi.douban.com/simple/",
+            "https://mirrors.aliyun.com/pypi/simple/",
+            "https://pypi.mirrors.ustc.edu.cn/simple/"
+        ]
+        
+        success = False
+        for mirror in mirrors:
+            print(f"🔄 Trying mirror: {mirror.split('//')[1].split('/')[0]}")
+            try:
+                for package in missing_packages:
+                    cmd = [sys.executable, "-m", "pip", "install", package, "-i", mirror, "--timeout", "30"]
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                    if result.returncode != 0:
+                        raise subprocess.CalledProcessError(result.returncode, cmd, result.stderr)
+                
+                print("✅ Dependencies installed successfully!")
+                success = True
+                break
+                
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+                print(f"❌ Failed with {mirror.split('//')[1].split('/')[0]}: Network error")
+                continue
+        
+        if not success:
+            print("\n❌ All mirrors failed. Network connectivity issues detected.")
+            print("\n📋 Manual installation options:")
+            print("Option 1 - Use mamba (recommended):")
+            print("  mamba install pillow matplotlib")
+            print("  pip install customtkinter --no-deps")
+            print("\nOption 2 - Try offline mode:")
             for package in missing_packages:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            print("✅ Dependencies installed successfully!")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to install dependencies: {e}")
-            print("Please install manually:")
-            for package in missing_packages:
-                print(f"  pip install {package}")
+                print(f"  pip install {package} --user --timeout 60")
+            print("\nOption 3 - Use basic GUI (fallback):")
+            print("  python launch_basic_gui.py")
+            
             return False
     
     return True
