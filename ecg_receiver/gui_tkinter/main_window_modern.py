@@ -17,9 +17,12 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from .components.modern_widgets import *
+from .components.optimized_plotter import OptimizedECGPlotter
 from .styles.colors import *
 from ..core.serial_handler import SerialHandler
 from ..core.data_recorder import DataRecorder
+from ..core.circular_buffer import CircularECGBuffer
+from ..core.performance_monitor import PerformanceMonitor
 
 # Import diagnosis client with fallback
 try:
@@ -75,17 +78,22 @@ class ModernECGMainWindow:
         self.diagnosis_client: Optional[GeminiECGDiagnosisClient] = None
         self.diagnosis_worker: Optional[DiagnosisWorker] = None
         
-        # Data management
-        self.raw_ecg_values = []
-        self.diagnosis_buffer_size = 5000  # 20 seconds at 250Hz
+        # Data management with performance optimizations
+        self.ecg_buffer = CircularECGBuffer(max_size=5000)  # 20 seconds at 250Hz
+        self.diagnosis_buffer_size = 5000
         self.packets_received = 0
         self.last_diagnosis = None
         self.diagnosis_history = []
+        self.max_history_size = 50  # Limit diagnosis history for memory management
         
         # Auto-diagnosis settings
         self.auto_diagnosis_enabled = False
         self.auto_diagnosis_interval = 30  # seconds
         self.last_auto_diagnosis = 0
+        
+        # Performance monitoring
+        self.performance_monitor = PerformanceMonitor()
+        self.performance_monitor.start_monitoring()
         
         self.create_main_window()
         self.setup_ui()
@@ -205,9 +213,11 @@ class ModernECGMainWindow:
         
         ecg_content = self.ecg_panel.get_content_frame()
         
-        # ECG Plot
-        self.ecg_plot = ECGPlotWidget(ecg_content, height=300)
-        self.ecg_plot.pack(fill="both", expand=True, pady=(0, 10))
+        # ECG Plot with performance optimization
+        plot_frame = ctk.CTkFrame(ecg_content, fg_color=BG_LIGHT, corner_radius=RADII["large"])
+        plot_frame.pack(fill="both", expand=True, pady=(0, 10))
+        
+        self.ecg_plot = OptimizedECGPlotter(plot_frame, width=800, height=300)
         
         # Control panel
         self.create_control_panel(ecg_content)
@@ -590,8 +600,48 @@ class ModernECGMainWindow:
         self.scan_ports()
     
     def run(self):
-        """Start the GUI main loop"""
-        self.root.mainloop()
+        """Start the GUI main loop with cleanup handling"""
+        try:
+            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.root.mainloop()
+        finally:
+            self.cleanup()
+    
+    def on_closing(self):
+        """Handle application closing"""
+        try:
+            # Stop performance monitoring
+            if hasattr(self, 'performance_monitor'):
+                self.performance_monitor.stop_monitoring()
+            
+            # Disconnect serial if connected
+            if hasattr(self, 'serial_handler') and self.serial_handler.is_connected:
+                self.serial_handler.disconnect()
+            
+            # Stop data recording if active
+            if hasattr(self, 'data_recorder') and self.data_recorder.recording:
+                self.data_recorder.stop_recording()
+                
+            # Print final performance report
+            if hasattr(self, 'performance_monitor'):
+                print("\n" + "="*50)
+                print("📊 Final Performance Report")
+                print("="*50)
+                self.performance_monitor.print_performance_summary()
+                print("="*50)
+                
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+        finally:
+            self.root.destroy()
+    
+    def cleanup(self):
+        """Cleanup resources"""
+        try:
+            if hasattr(self, 'performance_monitor'):
+                self.performance_monitor.stop_monitoring()
+        except Exception as e:
+            print(f"Cleanup error: {e}")
     
     # Implementation of core functionality methods
     
@@ -737,12 +787,12 @@ class ModernECGMainWindow:
         self.show_error("API Setup Error", f"Failed to setup API: {error_msg}")
     
     def start_diagnosis(self):
-        """Start ECG diagnosis analysis"""
+        """Start ECG diagnosis analysis with performance optimizations"""
         if not self.diagnosis_client:
             self.show_warning("Diagnosis", "Please setup the API first.")
             return
         
-        if len(self.raw_ecg_values) < 100:
+        if self.ecg_buffer.count < 100:
             self.show_warning("Diagnosis", "Not enough ECG data for analysis. Please wait for more data.")
             return
         
@@ -753,8 +803,10 @@ class ModernECGMainWindow:
         # Get patient information
         patient_info = self.get_patient_info()
         
-        # Use last 2500 samples (10 seconds at 250Hz) for diagnosis
-        ecg_data_for_diagnosis = self.raw_ecg_values[-2500:] if len(self.raw_ecg_values) >= 2500 else self.raw_ecg_values.copy()
+        # Use optimized circular buffer to get diagnosis data
+        # Get last 2500 samples (10 seconds at 250Hz) for diagnosis
+        available_samples = min(2500, self.ecg_buffer.count)
+        ecg_data_for_diagnosis = self.ecg_buffer.get_recent_data(available_samples).tolist()
         
         # Show progress
         self.progress_indicator.show_progress(0.1, "Starting diagnosis...")
@@ -783,15 +835,21 @@ class ModernECGMainWindow:
             self.root.after(500, self.update_diagnosis_progress)
     
     def on_diagnosis_completed(self, diagnosis: Dict[str, Any]):
-        """Handle completed diagnosis"""
+        """Handle completed diagnosis with history management"""
         self.progress_indicator.show_progress(1.0, "Diagnosis complete!")
         self.root.after(1000, self.progress_indicator.hide)
         
         self.last_diagnosis = diagnosis
+        
+        # Add to history with memory management
         self.diagnosis_history.append({
             'timestamp': datetime.now().isoformat(),
             'diagnosis': diagnosis
         })
+        
+        # Limit history size to prevent memory bloat
+        if len(self.diagnosis_history) > self.max_history_size:
+            self.diagnosis_history = self.diagnosis_history[-self.max_history_size:]
         
         # Update UI
         self.display_diagnosis(diagnosis)
@@ -872,7 +930,9 @@ class ModernECGMainWindow:
             self.root.after(50, self.process_data_queue)
     
     def process_ecg_data(self, data: str):
-        """Process individual ECG data point"""
+        """Process individual ECG data point with performance optimizations"""
+        start_time = time.time()
+        
         try:
             # Parse ECG value (simplified - adapt based on your data format)
             ecg_value = None
@@ -890,14 +950,14 @@ class ModernECGMainWindow:
             if ecg_value is not None:
                 # Update statistics
                 self.packets_received += 1
+                self.performance_monitor.record_frame()
                 
-                # Add to plot
-                self.ecg_plot.add_data_point(ecg_value)
+                # Add to optimized circular buffer instead of growing list
+                self.ecg_buffer.append([ecg_value])
                 
-                # Store for diagnosis
-                self.raw_ecg_values.append(ecg_value)
-                if len(self.raw_ecg_values) > self.diagnosis_buffer_size:
-                    self.raw_ecg_values.pop(0)
+                # Update plot with optimized plotter
+                recent_data = self.ecg_buffer.get_recent_data(250)  # Last 1 second
+                self.ecg_plot.update_data(recent_data.tolist())
                 
                 # Record if enabled
                 if self.data_recorder and self.data_recorder.recording:
@@ -905,8 +965,12 @@ class ModernECGMainWindow:
                     self.data_recorder.write_data(timestamp, ecg_value)
                 
                 # Enable diagnosis button if enough data
-                if len(self.raw_ecg_values) > 100 and self.diagnosis_client:
+                if self.ecg_buffer.count > 100 and self.diagnosis_client:
                     self.diagnose_btn.configure(state="normal")
+                
+                # Record processing time for performance monitoring
+                processing_time = time.time() - start_time
+                self.performance_monitor.record_update_time(processing_time)
                 
         except Exception as e:
             print(f"Error processing ECG data: {e}")
@@ -929,13 +993,16 @@ class ModernECGMainWindow:
         self.root.after(1000, self.check_auto_diagnosis)
     
     def update_statistics(self):
-        """Update real-time statistics display"""
-        if self.raw_ecg_values:
-            # Calculate heart rate (simplified)
-            if len(self.raw_ecg_values) > 500:  # At least 2 seconds of data
+        """Update real-time statistics display with performance monitoring"""
+        # Get performance report
+        perf_report = self.performance_monitor.get_performance_report()
+        
+        if self.ecg_buffer.count > 0:
+            # Calculate heart rate using circular buffer (simplified)
+            if self.ecg_buffer.count > 500:  # At least 2 seconds of data
                 try:
-                    # Simple peak detection for heart rate
-                    data = np.array(self.raw_ecg_values[-1250:])  # Last 5 seconds
+                    # Simple peak detection for heart rate using optimized buffer
+                    data = self.ecg_buffer.get_recent_data(1250)  # Last 5 seconds
                     peaks = []
                     threshold = np.mean(data) + 0.5 * np.std(data)
                     
@@ -956,9 +1023,9 @@ class ModernECGMainWindow:
                     print(f"Error calculating heart rate: {e}")
                     self.hr_label.configure(text="-- BPM", text_color=TEXT_GRAY)
             
-            # Update signal quality (simplified)
-            if len(self.raw_ecg_values) > 100:
-                recent_data = np.array(self.raw_ecg_values[-100:])
+            # Update signal quality using circular buffer
+            if self.ecg_buffer.count > 100:
+                recent_data = self.ecg_buffer.get_recent_data(100)
                 noise_level = np.std(recent_data)
                 
                 if noise_level < 10:
@@ -976,8 +1043,19 @@ class ModernECGMainWindow:
                 
                 self.quality_label.configure(text=quality, text_color=color)
             
-            # Update data count
-            self.count_label.configure(text=f"{len(self.raw_ecg_values)}")
+            # Update data count and buffer usage
+            self.count_label.configure(text=f"{self.ecg_buffer.count}")
+            buffer_usage = (self.ecg_buffer.count / self.ecg_buffer.max_size) * 100
+            
+            # Update performance metrics in footer if available
+            try:
+                performance_text = (f"CPU: {perf_report['cpu_percent']:.1f}% | "
+                                  f"RAM: {perf_report['memory_mb']}MB | "
+                                  f"FPS: {perf_report['frame_rate']:.1f} | "
+                                  f"Buffer: {buffer_usage:.1f}%")
+                self.update_footer_status(performance_text)
+            except Exception:
+                pass
         
         # Update ECG statistics tab
         self.update_ecg_statistics_display()
