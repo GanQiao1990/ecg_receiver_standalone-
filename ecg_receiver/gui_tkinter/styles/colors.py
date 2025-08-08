@@ -236,22 +236,22 @@ STATUS_STYLES = {
 # Diagnosis Panel Settings
 DIAGNOSIS_STYLES = {
     "severity_low": {
-        "bg": f"{SUCCESS_GREEN}20",  # 20% opacity
+        "bg": BG_LIGHT,  # Use solid background color instead of opacity
         "border": SUCCESS_GREEN,
         "text": SUCCESS_GREEN
     },
     "severity_moderate": {
-        "bg": f"{WARNING_YELLOW}20",
+        "bg": BG_LIGHT,
         "border": WARNING_YELLOW, 
         "text": WARNING_YELLOW
     },
     "severity_high": {
-        "bg": f"{ERROR_RED}20",
+        "bg": BG_LIGHT,
         "border": ERROR_RED,
         "text": ERROR_RED
     },
     "severity_critical": {
-        "bg": f"{CRITICAL_RED}20",
+        "bg": BG_LIGHT,
         "border": CRITICAL_RED,
         "text": CRITICAL_RED
     }

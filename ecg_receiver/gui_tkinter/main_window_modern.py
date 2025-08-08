@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 import sys
 import os
+import numpy as np
 
 # Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -80,6 +81,7 @@ class ModernECGMainWindow:
         
         # Data management with performance optimizations
         self.ecg_buffer = CircularECGBuffer(max_size=5000)  # 20 seconds at 250Hz
+        self.raw_ecg_values = []  # Initialize missing attribute for backward compatibility
         self.diagnosis_buffer_size = 5000
         self.packets_received = 0
         self.last_diagnosis = None
@@ -690,6 +692,7 @@ class ModernECGMainWindow:
             
             # Clear previous data
             self.raw_ecg_values.clear()
+            self.ecg_buffer = CircularECGBuffer(max_size=5000)  # Reset buffer
             self.packets_received = 0
             self.ecg_plot.clear_data()
             
@@ -731,7 +734,8 @@ class ModernECGMainWindow:
         """Start recording ECG data to CSV file"""
         try:
             if self.data_recorder.start_recording():
-                self.record_btn.configure(text="Stop Recording", style="warning")
+                self.record_btn.configure(text="Stop Recording")
+                self.record_btn.configure(fg_color=WARNING_YELLOW)
                 filename = self.data_recorder.current_filename
                 self.update_footer_status(f"Recording to {filename}")
                 self.show_success("Recording Started", f"Recording ECG data to {filename}")
@@ -744,7 +748,8 @@ class ModernECGMainWindow:
         """Stop recording ECG data"""
         try:
             self.data_recorder.stop_recording()
-            self.record_btn.configure(text="Start Recording", style="success")
+            self.record_btn.configure(text="Start Recording")
+            self.record_btn.configure(fg_color=SUCCESS_GREEN)
             self.update_footer_status("Recording stopped")
         except Exception as e:
             self.show_error("Recording Error", f"Failed to stop recording: {str(e)}")
@@ -777,7 +782,7 @@ class ModernECGMainWindow:
         """Handle successful API setup"""
         self.setup_api_btn.configure(text="Setup API", state="normal")
         self.api_status.update_status("connected")
-        self.diagnose_btn.configure(state="normal" if len(self.raw_ecg_values) > 100 else "disabled")
+        self.diagnose_btn.configure(state="normal" if self.ecg_buffer.count > 100 else "disabled")
         self.show_success("API Setup", "Diagnosis API configured successfully!")
         
     def on_api_setup_error(self, error_msg: str):
@@ -981,7 +986,7 @@ class ModernECGMainWindow:
         
         if (self.auto_diagnosis_enabled and 
             self.diagnosis_client and 
-            len(self.raw_ecg_values) >= 1000 and
+            self.ecg_buffer.count >= 1000 and
             current_time - self.last_auto_diagnosis >= self.auto_diagnosis_interval and
             not (self.diagnosis_worker and hasattr(self.diagnosis_worker, 'thread') and self.diagnosis_worker.thread.is_alive())):
             
@@ -1152,17 +1157,18 @@ class ModernECGMainWindow:
     
     def update_ecg_statistics_display(self):
         """Update ECG statistics display"""
-        if not self.raw_ecg_values:
+        if self.ecg_buffer.count == 0:
             return
         
         self.ecg_stats_text.delete("1.0", "end")
         
-        data = np.array(self.raw_ecg_values)
+        # Get data from circular buffer
+        data = self.ecg_buffer.get_recent_data(min(1000, self.ecg_buffer.count))
         
         stats_text = f"=== ECG STATISTICS ===\n"
         stats_text += f"Last Updated: {datetime.now().strftime('%H:%M:%S')}\n\n"
-        stats_text += f"Sample Count: {len(self.raw_ecg_values)}\n"
-        stats_text += f"Duration: {len(self.raw_ecg_values) / 250:.1f} seconds\n\n"
+        stats_text += f"Sample Count: {self.ecg_buffer.count}\n"
+        stats_text += f"Duration: {self.ecg_buffer.count / 250:.1f} seconds\n\n"
         stats_text += f"Voltage Statistics:\n"
         stats_text += f"• Mean: {np.mean(data):.2f} μV\n"
         stats_text += f"• Std Dev: {np.std(data):.2f} μV\n"
