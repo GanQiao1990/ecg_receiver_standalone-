@@ -23,10 +23,28 @@ from ecg_receiver.core.data_recorder import DataRecorder
 class ECGPlot(Widget):
     """Lightweight ECG plotting widget using Kivy canvas."""
 
-    def __init__(self, max_points=2000, **kwargs):
+    def __init__(self, max_points=2000, *, sample_rate=250, time_window_sec=10,
+                 uv_per_div=500.0, gain=1.0, autoscale_y=False,
+                 minor_step_dp=10, major_step_dp=50,
+                 show_cal=True, cal_mv=1.0, cal_ms=200,
+                 **kwargs):
         super().__init__(**kwargs)
+        # Buffering
         self.max_points = max_points
         self.data = deque(maxlen=max_points)
+
+        # Display/scaling parameters
+        self.sample_rate = float(sample_rate)          # Hz
+        self.time_window_sec = float(time_window_sec)  # seconds
+        self.uv_per_div = float(uv_per_div)            # microvolts per major division (10 mm)
+        self.gain = float(gain)                        # microvolts per input unit
+        self.autoscale_y = bool(autoscale_y)
+        self.minor_step_dp = float(minor_step_dp)      # visual 1 mm grid
+        self.major_step_dp = float(major_step_dp)      # visual 5 mm grid
+        self.show_cal = bool(show_cal)
+        self.cal_mv = float(cal_mv)                    # calibration pulse amplitude in mV
+        self.cal_ms = float(cal_ms)                    # calibration pulse width in ms
+
         self.line = None
         self.bg_rect = None
         self._min_y = -1.0
@@ -41,8 +59,56 @@ class ECGPlot(Widget):
         if self.bg_rect is not None:
             self.bg_rect.pos = self.pos
             self.bg_rect.size = self.size
+        # Redraw grid on size/pos changes
+        self._draw_grid()
         # Redraw when size changes
         self.redraw()
+
+    def _draw_grid(self):
+        """Draw ECG paper-style grid with minor (1 mm) and major (5 mm) divisions."""
+        canvas = self.canvas.before
+        try:
+            canvas.remove_group('grid')
+        except Exception:
+            pass
+
+        w = float(self.width)
+        h = float(self.height)
+        if w <= 2 or h <= 2:
+            return
+
+        x0 = float(self.x)
+        y0 = float(self.y)
+
+        minor = float(dp(self.minor_step_dp))
+        major = float(dp(self.major_step_dp))
+
+        with canvas:
+            # Minor grid (light pink)
+            Color(1.0, 0.86, 0.86, 1.0, group='grid')
+            # Vertical minor lines
+            x = x0
+            while x <= x0 + w + 0.5:
+                Line(points=[x, y0, x, y0 + h], width=0.6, group='grid')
+                x += minor
+            # Horizontal minor lines
+            y = y0
+            while y <= y0 + h + 0.5:
+                Line(points=[x0, y, x0 + w, y], width=0.6, group='grid')
+                y += minor
+
+            # Major grid (stronger red lines every 5 minors)
+            Color(1.0, 0.55, 0.55, 1.0, group='grid')
+            # Vertical major lines
+            x = x0
+            while x <= x0 + w + 0.5:
+                Line(points=[x, y0, x, y0 + h], width=1.0, group='grid')
+                x += major
+            # Horizontal major lines
+            y = y0
+            while y <= y0 + h + 0.5:
+                Line(points=[x0, y, x0 + w, y], width=1.0, group='grid')
+                y += major
 
     def clear(self):
         self.data.clear()
@@ -73,13 +139,15 @@ class ECGPlot(Widget):
         if n < 2:
             return
 
-        # Dynamic scaling with small margin
-        data_arr = np.array(points, dtype=float)
-        dmin, dmax = float(np.min(data_arr)), float(np.max(data_arr))
-        padding = (dmax - dmin) * 0.1 if dmax > dmin else 1.0
-        ymin = dmin - padding
-        ymax = dmax + padding
-        self.set_minmax(ymin, ymax)
+        # Determine scaling
+        if self.autoscale_y:
+            # Dynamic scaling with small margin
+            data_arr = np.array(points, dtype=float)
+            dmin, dmax = float(np.min(data_arr)), float(np.max(data_arr))
+            padding = (dmax - dmin) * 0.1 if dmax > dmin else 1.0
+            ymin = dmin - padding
+            ymax = dmax + padding
+            self.set_minmax(ymin, ymax)
 
         w = float(self.width)
         h = float(self.height)
@@ -88,22 +156,62 @@ class ECGPlot(Widget):
 
         x0 = float(self.x)
         y0 = float(self.y)
-        dx = w / (n - 1)
-        rng = (self._max_y - self._min_y)
-        if rng <= 0:
-            rng = 1.0
+        window_samples = max(2, int(self.sample_rate * self.time_window_sec))
+        dx = w / (window_samples - 1)
+        # Offset so the trace fills from the right when fewer points than window
+        offset = max(0, window_samples - n)
+
+        # Y scaling
+        if self.autoscale_y:
+            rng = (self._max_y - self._min_y)
+            if rng <= 0:
+                rng = 1.0
+        else:
+            major_px = float(dp(self.major_step_dp))
+            # pixels per microvolt
+            self._px_per_uv = major_px / max(1e-9, self.uv_per_div)
+
+        # Draw midline baseline
+        with self.canvas:
+            Color(0.88, 0.88, 0.88, 1, group='ecg')
+            y_mid = y0 + h / 2.0
+            Line(points=[x0, y_mid, x0 + w, y_mid], width=1.0, group='ecg')
 
         # Build polyline points
         pts = []
         for i, v in enumerate(points):
-            x = x0 + i * dx
-            # Map value to widget Y space (flip so higher values at top)
-            y = y0 + (v - self._min_y) / rng * h
+            x = x0 + (offset + i) * dx
+            if self.autoscale_y:
+                # Map value using dynamic range
+                y = y0 + (v - self._min_y) / rng * h
+            else:
+                # Map value using professional scaling to μV per division
+                v_uv = float(v) * self.gain
+                y = y0 + h / 2.0 + v_uv * self._px_per_uv
+                # Clamp to view
+                y = max(y0 + 1.0, min(y0 + h - 1.0, y))
             pts.extend((x, y))
 
         with self.canvas:
-            Color(0.0, 0.3, 1.0, 1, group='ecg')  # blue line
-            Line(points=pts, width=1.2, group='ecg')
+            Color(0.0, 0.65, 0.0, 1, group='ecg')  # clinical green line
+            Line(points=pts, width=1.5, group='ecg')
+
+            # Calibration marker (1 mV, 200 ms by default) when fixed scaling
+            if not self.autoscale_y and self.show_cal:
+                Color(0.1, 0.1, 0.1, 1, group='ecg')
+                cal_height_px = (self.cal_mv * 1000.0) * self._px_per_uv
+                cal_samples = max(1, int(self.sample_rate * (self.cal_ms / 1000.0)))
+                cal_w = cal_samples * dx
+                x_cal = x0 + dp(self.major_step_dp) * 1.5
+                y_base = y0 + h / 2.0
+                # Step pulse shape
+                cal_pts = [
+                    x_cal, y_base,
+                    x_cal, y_base + cal_height_px,
+                    x_cal + cal_w, y_base + cal_height_px,
+                    x_cal + cal_w, y_base,
+                ]
+                Line(points=cal_pts, width=1.2, group='ecg')
 
 
 class ECGReceiverUI(BoxLayout):
@@ -116,8 +224,12 @@ class ECGReceiverUI(BoxLayout):
         self.serial = SerialHandler(baudrate=57600)
         self.recorder = DataRecorder()
 
+        # Visualization configuration
+        self.sample_rate = 250  # Hz (typical ECG)
+        self.time_window_sec = 10  # seconds visible across the width
+        self.max_points = int(self.sample_rate * self.time_window_sec)
+
         # Buffers
-        self.max_points = 2000
         self.ecg_buffer = deque(maxlen=self.max_points)
         self.packets_received = 0
         self.last_packet_time = None
@@ -151,8 +263,17 @@ class ECGReceiverUI(BoxLayout):
         status_row.add_widget(self.packets_label)
         self.add_widget(status_row)
 
-        # Plot
-        self.plot = ECGPlot(max_points=self.max_points)
+        # Plot (professional defaults: 0.5 mV per major division, fixed 10 s window)
+        self.plot = ECGPlot(
+            max_points=self.max_points,
+            sample_rate=self.sample_rate,
+            time_window_sec=self.time_window_sec,
+            uv_per_div=500.0,   # 0.5 mV per 10 mm major div
+            gain=1.0,           # adjust if your input units are not μV
+            autoscale_y=False,
+            minor_step_dp=10,
+            major_step_dp=50,
+        )
         self.add_widget(self.plot)
 
         # Schedulers

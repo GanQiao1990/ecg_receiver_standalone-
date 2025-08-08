@@ -15,7 +15,7 @@ def print_header():
     """Print installation header"""
     print("🫀 ECG AI Heart Diagnosis - Installation Setup")
     print("=" * 60)
-    print("Modern GUI with AI-powered heart condition analysis")
+    print("Kivy GUI with AI-powered heart condition analysis")
     print("Powered by Gemini 2.5 Flash AI Model")
     print("=" * 60)
     
@@ -94,32 +94,28 @@ def install_dependencies():
         ("python-dotenv>=1.0.0", "Environment variables")
     ]
     
-    # GUI dependencies
+    # GUI dependencies (Kivy)
     gui_deps = [
-        ("customtkinter>=5.2.0", "Modern GUI framework"),
-        ("matplotlib>=3.7.0", "Data plotting"),
-        ("Pillow>=10.0.0", "Image processing"),
+        ("kivy>=2.3.0", "Kivy GUI framework"),
         ("psutil>=5.9.0", "Performance monitoring")
     ]
     
-    # Optional GUI design dependencies (for advanced users)
-    design_deps = [
-        ("tkdesigner>=1.0.7", "Figma to Tkinter conversion tool (optional)")
-    ]
+    # Optional GUI design dependencies (removed for Kivy migration)
+    design_deps = []
     
     print("📋 Core Dependencies:")
     core_success = all(install_package(pkg, desc) for pkg, desc in core_deps)
     
-    print("\\n🎨 Modern GUI Dependencies:")
+    print("\n🎨 Kivy GUI Dependencies:")
     gui_success = all(install_package(pkg, desc) for pkg, desc in gui_deps)
     
-    print("\\n🎨 GUI Design Tools (optional):")
-    design_success = True  # Don't require these
-    for pkg, desc in design_deps:
-        try:
-            install_package(pkg, desc)
-        except:
-            print(f"   ⚠️  {pkg} - optional dependency failed (continuing)")
+    if design_deps:
+        print("\n🎨 GUI Design Tools (optional):")
+        for pkg, desc in design_deps:
+            try:
+                install_package(pkg, desc)
+            except:
+                print(f"   ⚠️  {pkg} - optional dependency failed (continuing)")
     
     # Legacy GUI dependencies (still optional)
     legacy_deps = [
@@ -127,7 +123,7 @@ def install_dependencies():
         ("pyqtgraph>=0.13.0", "Legacy plotting")
     ]
     
-    print("\\n📱 Legacy GUI Dependencies (optional):")
+    print("\n📱 Legacy GUI Dependencies (optional):")
     legacy_success = True  # Don't require these
     for pkg, desc in legacy_deps:
         try:
@@ -139,16 +135,14 @@ def install_dependencies():
 
 def check_installation():
     """Verify installation by importing modules"""
-    print("\\n🔍 Verifying Installation...")
+    print("\n🔍 Verifying Installation...")
     
     modules_to_check = {
-        'customtkinter': 'Modern GUI framework',
-        'matplotlib': 'Data plotting',
-        'numpy': 'Numerical computations', 
+        'kivy': 'Kivy GUI framework',
+        'numpy': 'Numerical computations',
         'serial': 'Serial communication (pyserial)',
         'requests': 'HTTP requests',
         'psutil': 'Performance monitoring',
-        'PIL': 'Image processing (Pillow)'
     }
     
     success_count = 0
@@ -160,7 +154,7 @@ def check_installation():
         except ImportError:
             print(f"   ❌ {module} - {description} (FAILED)")
     
-    print(f"\\n📊 Installation Status: {success_count}/{len(modules_to_check)} modules verified")
+    print(f"\n📊 Installation Status: {success_count}/{len(modules_to_check)} modules verified")
     return success_count == len(modules_to_check)
 
 def create_desktop_shortcut():
@@ -173,7 +167,7 @@ def create_desktop_shortcut():
             # Windows shortcut creation
             shortcut_path = Path.home() / "Desktop" / "ECG AI Heart Diagnosis.bat"
             with open(shortcut_path, 'w') as f:
-                f.write(f'@echo off\\ncd /d "{project_dir}"\\npython launch_modern_gui.py\\npause')
+                f.write(f'@echo off\ncd /d "{project_dir}"\npython launch_kivy_gui.py\npause')
             print(f"   ✅ Windows shortcut created: {shortcut_path}")
             
         elif system_info == "Linux":
@@ -184,8 +178,8 @@ def create_desktop_shortcut():
             with open(shortcut_path, 'w') as f:
                 f.write(f"""[Desktop Entry]
 Name=ECG AI Heart Diagnosis
-Comment=Modern ECG monitoring with AI diagnosis
-Exec=python3 {project_dir}/launch_modern_gui.py
+Comment=Kivy ECG monitoring with AI diagnosis
+Exec=python3 {project_dir}/launch_kivy_gui.py
 Path={project_dir}
 Icon={project_dir}/assets/icon.png
 Terminal=false
@@ -201,7 +195,7 @@ Categories=Science;MedicalSoftware;
 
 def run_quick_test():
     """Run a quick functionality test"""
-    print("\\n🧪 Running Quick Test...")
+    print("\n🧪 Running Quick Test...")
     
     try:
         # Test circular buffer
@@ -238,27 +232,26 @@ def run_quick_test():
 
 def print_completion_info():
     """Print completion information and usage instructions"""
-    print("\\n🎉 Installation Complete!")
+    print("\n🎉 Installation Complete!")
     print("=" * 60)
-    print("\\n🚀 How to Launch the Application:")
-    print("   Option 1 (Modern GUI): python launch_modern_gui.py")
+    print("\n🚀 How to Launch the Application:")
+    print("   Option 1 (Kivy GUI):  python launch_kivy_gui.py")
     print("   Option 2 (Legacy GUI):  python -m ecg_receiver.main")
-    print("\\n📋 What's Included:")
-    print("   ✅ Modern CustomTkinter GUI with medical-grade design")
+    print("\n📋 What's Included:")
+    print("   ✅ Kivy-based GUI with clinical ECG rendering")
     print("   ✅ AI-powered heart diagnosis with Gemini 2.5 Flash")
     print("   ✅ Real-time ECG plotting with performance optimizations")
     print("   ✅ Memory-efficient circular buffer system")
     print("   ✅ Performance monitoring and metrics")
     print("   ✅ Cross-platform compatibility (Windows, Linux, macOS)")
-    print("\\n⚙️  Configuration:")
+    print("\n⚙️  Configuration:")
     print("   • Set up your Gemini API key in the GUI")
     print("   • Connect ESP32 + ADS1292R ECG hardware via USB")
     print("   • Select appropriate serial port in application")
-    print("\\n📚 Documentation:")
+    print("\n📚 Documentation:")
     print("   • PERFORMANCE_OPTIMIZATION_REPORT.md - Performance details")
-    print("   • TKINTER_DESIGNER_GUIDE.md - GUI customization guide")
     print("   • README.md - Complete project documentation")
-    print("\\n❤️  Ready for ECG AI Heart Diagnosis!")
+    print("\n❤️  Ready for ECG AI Heart Diagnosis!")
 
 def main():
     """Main installation function"""

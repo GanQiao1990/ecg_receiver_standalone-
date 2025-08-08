@@ -22,15 +22,13 @@ def validate_installation():
     else:
         print("✅ Python version compatible")
     
-    # Check required modules
+    # Check required modules (Kivy-based GUI)
     required_modules = {
-        'customtkinter': '🎨 Modern GUI Framework',
-        'matplotlib': '📊 Data Plotting',
-        'numpy': '🔢 Numerical Computing', 
+        'kivy': '🎨 Kivy GUI Framework',
+        'numpy': '🔢 Numerical Computing',
         'serial': '🔌 Serial Communication',
         'requests': '🌐 HTTP Requests',
         'psutil': '📈 Performance Monitoring',
-        'PIL': '🖼️  Image Processing'
     }
     
     print(f"\\n📦 Checking {len(required_modules)} Required Modules:")
@@ -62,14 +60,14 @@ def validate_installation():
     print(f"\\n📊 Installation Status: {success_count}/{len(required_modules)} required modules")
     
     if success_count == len(required_modules):
-        print("\\n🎉 Installation Validation: SUCCESS!")
+        print("\n🎉 Installation Validation: SUCCESS!")
         print("✅ All required modules are installed and working")
         print("🚀 Ready to launch ECG AI Heart Diagnosis")
         
         # Show launch commands
-        print("\\n🚀 Launch Commands:")
-        print("   Modern GUI:  python launch_modern_gui.py")
-        print("   Legacy GUI:  python -m ecg_receiver.main")
+        print("\n🚀 Launch Commands:")
+        print("   Kivy GUI (recommended):  python launch_kivy_gui.py")
+        print("   PyQt GUI (legacy):       python -m ecg_receiver.main")
         
         return True
     else:

@@ -49,8 +49,8 @@ pip install -r requirements.txt
 
 3. **Launch the Application:**
 ```bash
-# Modern GUI (recommended)
-python launch_modern_gui.py
+# Kivy GUI (recommended)
+python launch_kivy_gui.py
 
 # Legacy GUI (fallback)
 python -m ecg_receiver.main
@@ -68,11 +68,9 @@ requests>=2.28.0        # AI API communication
 python-dotenv>=1.0.0    # Configuration management
 ```
 
-### **Modern GUI Framework:**
+### **Kivy GUI Framework:**
 ```text
-customtkinter>=5.2.0    # Modern, beautiful GUI
-matplotlib>=3.7.0       # High-performance plotting
-Pillow>=10.0.0         # Image processing
+kivy>=2.3.0            # Cross-platform GUI framework
 psutil>=5.9.0          # Performance monitoring
 ```
 
@@ -86,7 +84,6 @@ pyqtgraph>=0.13.0      # Legacy plotting
 ```text
 pytest>=7.0.0          # Testing framework
 pytest-qt>=4.2.0       # GUI testing utilities
-tkdesigner>=1.0.7      # Figma to Tkinter conversion tool
 ```
 
 ---
@@ -110,8 +107,8 @@ python --version
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-# Launch modern GUI
-python launch_modern_gui.py
+# Launch Kivy GUI
+python launch_kivy_gui.py
 ```
 
 #### **Windows Troubleshooting:**
@@ -135,7 +132,7 @@ chmod +x quick_install.sh
 sudo apt update
 
 # Install Python and pip
-sudo apt install python3 python3-pip python3-tk
+sudo apt install python3 python3-pip
 
 # Install system dependencies
 sudo apt install python3-dev build-essential
@@ -144,7 +141,7 @@ sudo apt install python3-dev build-essential
 pip3 install -r requirements.txt
 
 # Launch application
-python3 launch_modern_gui.py
+python3 launch_kivy_gui.py
 ```
 
 #### **Linux ARM (Raspberry Pi/Development Boards)**
@@ -166,7 +163,7 @@ chmod +x optimize_raspberry_pi.sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install Python
-brew install python-tk
+brew install python
 ```
 
 #### **Installation:**
@@ -179,7 +176,7 @@ cd ecg_receiver_standalone-
 pip3 install -r requirements.txt
 
 # Launch application
-python3 launch_modern_gui.py
+python3 launch_kivy_gui.py
 ```
 
 ---
@@ -254,8 +251,8 @@ python validate_performance.py
 
 ### **Manual Component Testing:**
 ```bash
-# Test modern GUI components
-python -c "import customtkinter; print('✅ Modern GUI: OK')"
+# Test Kivy GUI import
+python -c "import kivy; print('✅ Kivy GUI: OK')"
 
 # Test performance optimizations  
 python -c "from ecg_receiver.core.circular_buffer import CircularECGBuffer; print('✅ Circular Buffer: OK')"
@@ -266,8 +263,8 @@ python test_diagnosis.py
 
 ### **GUI Launch Test:**
 ```bash
-# Test modern interface
-python launch_modern_gui.py
+# Test Kivy interface
+python launch_kivy_gui.py
 
 # Test legacy interface (fallback)
 python -m ecg_receiver.main
@@ -279,7 +276,7 @@ python -m ecg_receiver.main
 
 ### **Automatic Optimizations (Included):**
 - **Memory Management**: Circular buffer prevents memory leaks
-- **GUI Rendering**: Matplotlib blitting for 60% faster updates
+- **GUI Rendering**: Efficient Kivy canvas drawing (~30 FPS via Clock scheduling)
 - **Data Processing**: Background threading prevents UI blocking
 - **Performance Monitoring**: Real-time CPU/Memory tracking
 
@@ -294,16 +291,19 @@ BUFFER_SIZE = 10000  # 40 seconds at 250Hz
 
 #### **For Low-End Hardware:**
 ```python
-# Edit launch_modern_gui.py
-# Reduce update frequency
-UPDATE_INTERVAL = 100  # ms (default: 50ms)
+# Edit ecg_receiver/gui_kivy/main_app.py
+# Reduce update frequency by lowering FPS
+# Find: Clock.schedule_interval(self.update_plot, 1 / 30.0)
+# Change to e.g. 20 FPS to reduce CPU usage:
+# Clock.schedule_interval(self.update_plot, 1 / 20.0)
 ```
 
 #### **Memory Optimization:**
 ```python
-# Edit main GUI settings
-MAX_HISTORY_SIZE = 25    # Reduce from 50
-MAX_PLOT_POINTS = 1000   # Reduce from 2000
+# Edit main GUI settings in ecg_receiver/gui_kivy/main_app.py
+# Reduce time window or max_points for lower memory/CPU
+self.time_window_sec = 8       # e.g., from 10 to 8 seconds
+self.plot.max_points = 1500    # e.g., from 2000 to 1500
 ```
 
 ---
@@ -316,7 +316,7 @@ MAX_PLOT_POINTS = 1000   # Reduce from 2000
 ```bash
 # Reinstall with specific Python version
 python3.9 -m pip install -r requirements.txt
-python3.9 launch_modern_gui.py
+python3.9 launch_kivy_gui.py
 ```
 
 #### **2. GUI not launching:**
@@ -324,9 +324,8 @@ python3.9 launch_modern_gui.py
 # Check display forwarding (Linux/SSH)
 export DISPLAY=:0.0
 
-# Install tkinter (if missing)
-sudo apt install python3-tk  # Linux
-brew install python-tk       # macOS
+# Kivy dependencies (if missing)
+conda install -c conda-forge kivy numpy pyserial  # Recommended
 ```
 
 #### **3. Serial port access denied:**
@@ -354,18 +353,17 @@ python -c "import psutil; print(f'CPU: {psutil.cpu_percent()}% RAM: {psutil.virt
 - Check API endpoint: [https://api.gptnb.ai/](https://api.gptnb.ai/)
 
 ### **Performance Monitoring:**
-The application includes real-time performance monitoring. Check the footer status bar for:
-- **CPU Usage**: Should be < 10% during normal operation
-- **Memory**: Should be < 100MB for standard sessions
-- **FPS**: Should be > 20 for smooth plotting
-- **Buffer**: Shows ECG data buffer utilization
+The application includes real-time performance monitoring (via `psutil`). Watch for:
+- **CPU Usage**: Typically < 10% during normal operation
+- **Memory**: Typically < 100MB for standard sessions
+- **FPS**: Aim > 20 for smooth plotting
+- **Buffer**: ECG data buffer utilization
 
 ---
 
 ## 📚 **Additional Documentation**
 
 - **[PERFORMANCE_OPTIMIZATION_REPORT.md](PERFORMANCE_OPTIMIZATION_REPORT.md)**: Detailed performance improvements
-- **[TKINTER_DESIGNER_GUIDE.md](TKINTER_DESIGNER_GUIDE.md)**: GUI customization guide
 - **[README.md](README.md)**: Main project documentation
 
 ---
@@ -374,7 +372,7 @@ The application includes real-time performance monitoring. Check the footer stat
 
 ### **Next Steps:**
 1. **🔌 Connect Hardware**: ESP32 + ADS1292R ECG system
-2. **🚀 Launch App**: Use desktop shortcuts or `python launch_modern_gui.py`
+2. **🚀 Launch App**: Use desktop shortcuts or `python launch_kivy_gui.py`
 3. **⚙️ Configure API**: Set up Gemini 2.5 Flash API key
 4. **📊 Start Monitoring**: Select serial port and begin ECG analysis
 5. **🤖 AI Diagnosis**: Enable automatic heart condition analysis

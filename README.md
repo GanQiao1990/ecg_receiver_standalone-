@@ -16,6 +16,43 @@ A comprehensive standalone application for real-time ECG data visualization and 
 - **⚠️ Severity Assessment**: Color-coded severity levels (Low, Moderate, High, Critical)
 - **💡 Clinical Recommendations**: AI-generated recommendations for immediate actions, follow-up, and lifestyle changes
 
+## ⚡ Quickstart (Kivy GUI – Recommended)
+
+Kivy is the default recommended GUI for an easier cross-platform setup and smoother debugging.
+
+1. Create and activate a Python environment
+   - Conda/Mamba (recommended):
+     ```bash
+     conda create -n ecg python=3.11 -y
+     conda activate ecg
+     ```
+   - venv (alternative):
+     ```bash
+     python -m venv .venv && source .venv/bin/activate
+     ```
+
+2. Install dependencies
+   - Best for Linux/macOS: use conda-forge to install Kivy (bundles SDL2 deps):
+     ```bash
+     conda install -c conda-forge kivy numpy pyserial -y
+     pip install -r requirements.txt
+     ```
+   - Pip-only (works on Windows; on Linux you may need SDL2 system libs). China mainland mirror example:
+     ```bash
+     pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+     ```
+
+3. Run the Kivy GUI
+   ```bash
+   python launch_kivy_gui.py
+   ```
+
+4. Connect your device
+   - Select the serial port and click Connect.
+   - Optional: Start Recording to save CSV.
+
+Notes (Linux): if you cannot open the serial port: `sudo usermod -a -G dialout $USER` then log out/in.
+
 ## Features
 
 ### Core ECG Monitoring
@@ -57,16 +94,11 @@ ecg_receiver_standalone-/
 │   │   │   └── serial_handler.py   # ESP32 communication
 │   │   ├── gui/                    # Legacy PyQt5 interface
 │   │   │   └── main_window.py      # Legacy GUI with AI diagnosis
-│   │   ├── gui_tkinter/            # 🆕 Modern CustomTkinter interface
-│   │   │   ├── main_window_modern.py    # Modern GUI main window
-│   │   │   ├── components/
-│   │   │   │   ├── modern_widgets.py    # Custom GUI components
-│   │   │   │   └── optimized_plotter.py # 🆕 High-performance plotting
-│   │   │   └── styles/
-│   │   │       └── colors.py            # Medical-grade color scheme
+│   │   ├── gui_kivy/                # 🆕 Kivy interface (recommended)
+│   │   │   └── main_app.py          # Kivy app entry
 │   │   └── main.py                 # Legacy application entry point
 │   ├── ecg_diagnosis.py            # AI diagnosis engine (Gemini 2.5 Flash)
-│   └── launch_modern_gui.py        # 🆕 Modern GUI launcher
+│   └── launch_kivy_gui.py          # 🆕 Kivy GUI launcher
 │
 ├── 🧪 Testing & Validation
 │   ├── test_diagnosis.py           # AI diagnosis functionality tests
@@ -92,7 +124,8 @@ ecg_receiver_standalone-/
 
 ### Software
 - Python 3.8 or higher
-- PyQt5 and PyQtGraph for the GUI
+- Kivy (recommended GUI)
+- PyQt5 and PyQtGraph (legacy PyQt GUI, optional)
 - pyserial for serial communication
 - numpy for data processing
 - requests for API communication
@@ -132,14 +165,27 @@ python setup_enhanced.py
    ```
 
 2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+   - Option A (recommended on Linux/macOS): conda-forge for Kivy, pip for the rest
+     ```bash
+     conda create -n ecg python=3.11 -y
+     conda activate ecg
+     conda install -c conda-forge kivy numpy pyserial -y
+     pip install -r requirements.txt
+     ```
+   - Option B (pip-only): include a mirror if needed (China mainland example)
+     ```bash
+     pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+     ```
 
-3. **Launch modern GUI**
-   ```bash
-   python launch_modern_gui.py
-   ```
+3. **Launch the GUI**
+   - Kivy (recommended):
+     ```bash
+     python launch_kivy_gui.py
+     ```
+   - PyQt5 (legacy):
+     ```bash
+     python -m ecg_receiver.main
+     ```
 
 ### **New in v2.0: Performance Optimizations**
 - ⚡ **60-80% memory usage reduction** with circular buffer system
@@ -191,9 +237,14 @@ python setup_enhanced.py
 ### Quick Start
 
 1. **Launch the application**
-   ```bash
-   python -m ecg_receiver.main
-   ```
+   - Kivy (recommended):
+     ```bash
+     python launch_kivy_gui.py
+     ```
+   - PyQt (legacy):
+     ```bash
+     python -m ecg_receiver.main
+     ```
 
 2. **Setup AI Diagnosis** (in the application)
    - Enter your Gemini API key in the "AI Diagnosis Configuration" panel
@@ -242,20 +293,22 @@ python setup_enhanced.py
 - **Data Quality**: Sample count, duration, signal-to-noise ratio
 
 #### Data Management
-- **Recording**: Save ECG data to timestamped CSV files
+- **Recording**: Save ECG data to timestamped CSV files (default folder: `~/ecg_recordings`)
 - **History**: Access previous diagnoses with timestamps
 - **Export**: Diagnosis results can be copied from the text panels
 
 ## ESP32 Configuration
 
-1. **Upload the ESP32 Code**
-   - Open `ESP32_ADS1292R_ECG.ino` in Arduino IDE
-   - Select your ESP32 board and port
-   - Upload the code to your ESP32
+1. **Prepare ESP32 Firmware**
+   - Ensure your firmware prints ECG samples over Serial at 57600 baud.
+   - Supported formats:
+     - CSV: `DATA,timestamp,ecg_value,resp_value,heart_rate,status`
+     - Simple numeric: a single value per line (e.g., `-7`, `1024`)
+   - You can adapt common ADS1292R + ESP32 examples from Arduino/ESP-IDF projects to match one of the formats above.
 
 2. **Hardware Connection**
    - Connect ESP32 to your computer via USB
-   - Connect the ADS1292R shield to the ESP32 following the pin mapping in the Arduino sketch
+   - Wire the ADS1292R to the ESP32 according to your chosen firmware's pin mapping
 
 ## Using the Application
 

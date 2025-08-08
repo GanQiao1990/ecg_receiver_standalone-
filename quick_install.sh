@@ -55,15 +55,15 @@ echo "This may take a few minutes..."
 
 # Core dependencies
 echo "📋 Installing core dependencies..."
-$PYTHON_CMD -m pip install --upgrade pip setuptools wheel
+$PYTHON_CMD -m pip install --upgrade pip setuptools wheel -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
-# Modern GUI dependencies
-echo "🎨 Installing modern GUI dependencies..."
-$PYTHON_CMD -m pip install customtkinter>=5.2.0 matplotlib>=3.7.0 Pillow>=10.0.0 psutil>=5.9.0
+# Kivy GUI dependencies
+echo "🎨 Installing Kivy GUI dependencies..."
+$PYTHON_CMD -m pip install kivy>=2.3.0 psutil>=5.9.0 -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 # Core ECG dependencies  
 echo "🔬 Installing ECG processing dependencies..."
-$PYTHON_CMD -m pip install pyserial>=3.5 numpy>=1.24.0 requests>=2.28.0 python-dotenv>=1.0.0
+$PYTHON_CMD -m pip install pyserial>=3.5 numpy>=1.24.0 requests>=2.28.0 python-dotenv>=1.0.0 -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 # Optional legacy GUI (install without failing)
 echo "📱 Installing optional legacy GUI..."
@@ -74,7 +74,7 @@ echo "🧪 Testing installation..."
 
 # Quick test
 $PYTHON_CMD -c "
-import customtkinter, matplotlib, numpy, serial, requests
+import kivy, numpy, serial, requests, psutil
 print('✅ All core modules imported successfully')
 " || {
     echo "❌ Installation verification failed"
@@ -85,8 +85,8 @@ echo ""
 echo "🎉 Installation Complete!"
 echo "========================="
 echo ""
-echo "🚀 To launch the modern ECG GUI:"
-echo "   $PYTHON_CMD launch_modern_gui.py"
+echo "🚀 To launch the Kivy ECG GUI:"
+echo "   $PYTHON_CMD launch_kivy_gui.py"
 echo ""
 echo "📋 To launch the legacy GUI:"
 echo "   $PYTHON_CMD -m ecg_receiver.main"

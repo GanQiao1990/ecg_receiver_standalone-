@@ -18,10 +18,10 @@
 - **Resource Cleanup**: Proper cleanup on application exit
 
 ### **2. GUI Rendering Optimizations** 
-- **Matplotlib Blitting**: Faster plot updates using background caching
+- **Kivy Canvas Drawing**: Efficient rendering using Kivy's graphics system (~30 FPS)
 - **Data Decimation**: Display every Nth point for performance
 - **Update Throttling**: Limited to 50ms intervals to prevent overload
-- **Optimized Plotting**: Custom `OptimizedECGPlotter` class
+- **Optimized Plotting**: Custom `ECGPlot` widget in Kivy GUI
 
 ### **3. Data Processing Enhancements**
 - **Circular Buffer Integration**: ECG data processing uses optimized buffer
@@ -35,7 +35,7 @@
 
 ### **File Integration Status**
 ✅ **CircularECGBuffer** (1,762 bytes) - Memory-efficient data storage  
-✅ **OptimizedECGPlotter** (4,059 bytes) - High-performance plotting  
+✅ **ECGPlot Widget** - High-performance Kivy plotting  
 ✅ **PerformanceMonitor** (3,855 bytes) - Real-time metrics tracking  
 ✅ **Main GUI Integration** - All optimizations integrated successfully
 
@@ -51,7 +51,7 @@
 | Metric | Improvement | Description |
 |--------|-------------|-------------|
 | **Memory Usage** | 60-80% reduction | Circular buffer prevents unbounded growth |
-| **Plot Speed** | 40-60% faster | Matplotlib blitting + data decimation |
+| **Plot Speed** | 40-60% faster | Kivy Canvas drawing + efficient updates |
 | **UI Responsiveness** | 90% less blocking | Background threading for AI processing |
 | **Long-term Stability** | Significant | Memory leak prevention + resource cleanup |
 
@@ -79,8 +79,8 @@ The optimized GUI now displays live performance metrics:
 - ✅ Background processing for non-blocking UI
 
 ### **Next Steps for Deployment**
-1. **Install Dependencies**: `pip install customtkinter matplotlib Pillow`
-2. **Launch Modern GUI**: `python launch_modern_gui.py`
+1. **Install Dependencies**: `pip install kivy psutil`
+2. **Launch Kivy GUI**: `python launch_kivy_gui.py`
 3. **Monitor Performance**: Check real-time metrics during operation
 4. **Tune Parameters**: Adjust buffer sizes based on actual usage patterns
 

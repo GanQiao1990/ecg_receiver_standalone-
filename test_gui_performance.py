@@ -99,7 +99,7 @@ def check_file_structure():
         "ecg_receiver/gui_tkinter/components/modern_widgets.py", 
         "ecg_receiver/gui_tkinter/styles/colors.py",
         "ecg_diagnosis.py",
-        "launch_modern_gui.py"
+        "launch_kivy_gui.py"
     ]
     
     for file_path in required_files:
@@ -126,11 +126,11 @@ def suggest_optimizations():
             "category": "GUI Rendering",
             "issues": [
                 "Real-time ECG plotting can be CPU intensive",
-                "Multiple matplotlib figures may consume memory"
+                "Multiple Kivy widgets may consume memory"
             ],
             "solutions": [
                 "Implement data decimation for display (show every Nth point)",
-                "Use matplotlib blitting for faster animation",
+                "Use Kivy Clock scheduling for efficient updates",
                 "Limit plot history to visible time window"
             ]
         },
@@ -253,17 +253,13 @@ class CircularECGBuffer:
     
     # 2. Create optimized plotting widget
     plotting_code = '''"""
-Optimized ECG Plotting with Matplotlib Blitting
+Optimized ECG Plotting with Kivy Canvas
 """
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-try:
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigureCanvas
-except ImportError:
-    # Fallback for older matplotlib versions
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkinter as FigureCanvas
-from matplotlib.figure import Figure
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from kivy.clock import Clock
+from kivy.graphics import Line, Color
+import numpy as np
 from typing import List, Optional
 import time
 
@@ -302,7 +298,7 @@ class OptimizedECGPlotter:
         self.max_points = 2000  # Show last 8 seconds at 250Hz
         
     def setup_blitting(self):
-        """Setup matplotlib blitting for performance"""
+        """Setup Kivy canvas drawing for performance"""
         self.canvas.draw()
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
         

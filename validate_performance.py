@@ -19,7 +19,7 @@ def validate_performance_files():
     
     required_files = {
         'ecg_receiver/core/circular_buffer.py': 'CircularECGBuffer',
-        'ecg_receiver/gui_tkinter/components/optimized_plotter.py': 'OptimizedECGPlotter',
+        'ecg_receiver/gui_kivy/main_app.py': 'ECGReceiverUI',
         'ecg_receiver/core/performance_monitor.py': 'PerformanceMonitor',
     }
     
@@ -170,7 +170,7 @@ def create_performance_summary():
         {
             'category': '🖼️  GUI Rendering',
             'improvements': [
-                'Matplotlib blitting for faster plot updates',
+                'Kivy canvas drawing for efficient rendering (~30 FPS)',
                 'Data decimation for display (show every Nth point)',
                 'Update throttling to 50ms intervals',
                 'Optimized plot clearing and redrawing'
@@ -237,8 +237,8 @@ def main():
         
         # Next steps
         print("\\n📋 Next Steps:")
-        print("   1. Install dependencies: pip install customtkinter matplotlib Pillow")
-        print("   2. Test GUI: python launch_modern_gui.py")
+        print("   1. Install dependencies: pip install kivy psutil")
+        print("   2. Test GUI: python launch_kivy_gui.py")
         print("   3. Monitor performance during real ECG data processing")
         print("   4. Adjust buffer sizes based on actual usage patterns")
         

@@ -5,11 +5,6 @@ PyQt5>=5.15.0
 pyqtgraph>=0.13.0
 python-dotenv>=1.0.0
 
-# Dependencies for the Modern Tkinter GUI
-customtkinter>=5.2.0
-matplotlib>=3.7.0
-Pillow>=10.1.0
-
 # Dependencies for the Kivy GUI
 kivy>=2.3.0
 
@@ -28,9 +23,6 @@ idna==2.10
 # pytest>=7.0.0
 # pytest-qt>=4.2.0
 
-# Note: The 'tkdesigner' package and its specific dependencies
-# (e.g., Pillow<9.0.0, urllib3==1.26.4) are incompatible with
-# the modern versions of matplotlib and Pillow used here.
-# It is recommended to install and use tkdesigner in a separate,
-# isolated virtual environment to generate UI code, then copy the
-# generated code into this project.
+# Note: Legacy Tkinter GUI dependencies (customtkinter, matplotlib, Pillow)
+# have been replaced with Kivy for better cross-platform compatibility.
+# The Kivy GUI is now the recommended default interface.
