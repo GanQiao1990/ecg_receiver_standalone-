@@ -10,6 +10,9 @@ customtkinter>=5.2.0
 matplotlib>=3.7.0
 Pillow>=10.1.0
 
+# Dependencies for the Kivy GUI
+kivy>=2.3.0
+
 # Performance monitoring dependency
 psutil>=5.9.0
 
