@@ -122,8 +122,8 @@ ecg_receiver_standalone-/
 - ESP32 with ADS1292R shield
 - USB cable for connecting ESP32 to computer
 
-### ESP32-ADS1292R ECG Monitoring System Architecture Diagram
-<img width="454" height="669" alt="Image" src="https://github.com/user-attachments/assets/3d694262-bd15-4292-82c5-45b39c9143ca" />
+### Hardware Architecture
+<img width="350" height="658" alt="Image" src="https://github.com/user-attachments/assets/b48bebca-84ad-452c-b540-bec4904cc18f" />
 
 <img width="349" height="656" alt="Image" src="https://github.com/user-attachments/assets/45de92ee-87d6-4add-b2f8-eb667b3115ec" />
 
